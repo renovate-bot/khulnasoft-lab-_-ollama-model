@@ -1,7 +1,12 @@
 services:
   ollama-model:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image: ollama-model:latest
+    container_name: ollama-model
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - OLLAMA_ENDPOINTS=http://192.168.1.10:11434,https://ollama1.remote.net,https://ollama2.remote.net
+      - OLLAMA_ENDPOINTS=${OLLAMA_ENDPOINTS:-ollama:11434}

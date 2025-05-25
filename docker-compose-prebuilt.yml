@@ -1,5 +1,6 @@
 services:
   ollama-model:
+    #image: ghcr.io/d3v0ps-cloud/ollama-model:latest
     image: ghcr.io/khulnasoft-lab/ollama-model:latest
     ports:
       - "3000:3000"
