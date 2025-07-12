@@ -4,7 +4,29 @@ import cors from 'cors';
 import axios from 'axios';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import { body, validationResult } from 'express-validator';
 const app = express();
+
+// Validate required environment variables
+if (!process.env.OLLAMA_ENDPOINTS) {
+    console.error('Missing OLLAMA_ENDPOINTS in environment');
+    process.exit(1);
+}
+
+// Logging
+app.use(morgan('combined'));
+
+// Security headers
+app.use(helmet());
+
+// Restrict CORS in production
+app.use(cors({
+    origin: process.env.NODE_ENV === 'production' ? ['https://yourdomain.com'] : '*',
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
+}));
 
 app.use(cors({
     origin: '*',
@@ -12,6 +34,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type']
 }));
 app.use(express.json());
+
+// Async error handler wrapper
+const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 // Serve swagger.json with explicit route
 app.get('/swagger.json', async (req, res) => {
@@ -29,6 +54,12 @@ app.get('/swagger.json', async (req, res) => {
 // Serve static files after routes
 app.use(express.static('public'));
 
+// Centralized error handler (should be after all routes)
+app.use((err, req, res, next) => {
+    console.error(err.stack || err);
+    res.status(500).json({ success: false, error: err.message || 'Internal Server Error' });
+});
+
 // Store the Ollama endpoint
 let ollamaEndpoint = 'http://localhost:11434';
 
@@ -44,21 +75,12 @@ app.get('/api/endpoints', (req, res) => {
 });
 
 // Endpoint to set Ollama API URL
-app.post('/api/set-endpoint', async (req, res) => {
-    const { endpoint } = req.body;
-    ollamaEndpoint = endpoint;
-    try {
-        // Test the connection
-        await axios.get(`${endpoint}/api/tags`);
-        res.json({ success: true, message: 'Endpoint set successfully' });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to connect to Ollama endpoint',
-            error: error.message 
-        });
-    }
-});
+app.post('/api/set-endpoint',
+    asyncHandler(async (req, res) => {
+        console.log('Received set-endpoint request:', req.body);
+        return res.json({ test: true, body: req.body });
+    })
+);
 
 // Get running models from Ollama
 app.get('/api/ps', async (req, res) => {
@@ -145,6 +167,9 @@ app.delete('/api/models', async (req, res) => {
         });
     }
 });
+
+// Health check endpoint
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // Handle streaming response for model operations
 const handleModelOperation = async (req, res, operation) => {
