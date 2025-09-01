@@ -50,7 +50,7 @@
     "http-errors": "^2.0.0",
     "morgan": "^1.10.0",
     "pino": "^8.19.0",
-    "pino-http": "^9.0.0",
+    "pino-http": "^10.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"
   },
