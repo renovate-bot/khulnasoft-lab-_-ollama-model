@@ -3,10 +3,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # image: ollama-model:latest
-    container_name: ollama-model
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
     environment:
-      - OLLAMA_ENDPOINTS=${OLLAMA_ENDPOINTS:-ollama:11434}
+      - OLLAMA_ENDPOINTS=${OLLAMA_ENDPOINTS:-http://host.docker.internal:11434}
+      - NODE_ENV=production
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

@@ -299,7 +299,12 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["downloading", "verifying digest", "writing manifest", "error"]
+                      "enum": [
+                        "downloading",
+                        "verifying digest",
+                        "writing manifest",
+                        "error"
+                      ]
                     },
                     "completed": {
                       "type": "integer"
@@ -358,7 +363,12 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["downloading", "verifying digest", "writing manifest", "error"]
+                      "enum": [
+                        "downloading",
+                        "verifying digest",
+                        "writing manifest",
+                        "error"
+                      ]
                     },
                     "completed": {
                       "type": "integer"

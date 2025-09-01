@@ -1,15 +1,334 @@
+# ======================================
+# Version Control
+# ======================================
 .git
 .gitignore
 .gitattributes
-.github
-README.md
-demo.png
-node_modules
-npm-debug.log
+.github/
+.gitmodules
+.gitkeep
+.git-*
+
+# ======================================
+# Environment and Configuration
+# ======================================
+.env*
+!.env.example
+*.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+*.enc
+*.gpg
+*.asc
+
+# ======================================
+# Logs and Debugging
+# ======================================
+logs
 *.log
-.env
-.env.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.lighthouseci/
+.nyc_output/
+coverage/
+
+# ======================================
+# Build and Dependencies
+# ======================================
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.cache/
+.turbo/
+.pnp.*
+
+# ======================================
+# Testing
+# ======================================
+__tests__/
+__mocks__/
+*.test.*
+*.spec.*
+*.e2e.*
+*.snap
+coverage/
+.nyc_output/
+.nyc_coverage/
+
+# ======================================
+# Editor and IDE
+# ======================================
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+*.sublime-*
+*.code-workspace
+
+# OS generated files
 .DS_Store
-docker-compose.yml
-docker-compose-prebuilt.yml
-Dockerfile
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ======================================
+# Documentation and Media
+# ======================================
+*.md
+!README.md
+!CHANGELOG.md
+!CONTRIBUTING.md
+!LICENSE
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.otf
+
+# ======================================
+# Docker and Containerization
+# ======================================
+docker-compose*.yml
+docker-compose*
+Dockerfile*
+.dockerignore
+.docker-compose*
+.dockeringore
+
+# ======================================
+# CI/CD and Deployment
+# ======================================
+.travis.yml
+.circleci/
+.gitlab-ci.yml
+.azure-pipelines/
+.github/workflows/
+.gitlab/
+.vercel/
+.netlify/
+.surge/
+.elasticbeanstalk/
+.codesandbox/
+
+# ======================================
+# Package Managers
+# ======================================
+.npm/
+.npmrc
+.pnpm-store/
+.yarn/
+.yarnrc
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# ======================================
+# Development and Cache
+# ======================================
+.tmp/
+.temp/
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.next/cache/
+.nuxt/cache/
+
+# ======================================
+# Environment Specific
+# ======================================
+*.local
+*.local.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ======================================
+# Debug and Profiling
+# ======================================
+*.cpuprofile
+*.heapsnapshot
+*.heaptimeline
+*.heapsnapshot
+*.heaptimeline
+*.heapprofile
+*.heapsnapshot
+*.heaptimeline
+
+# ======================================
+# Misc
+# ======================================
+*.bak
+*.swp
+*~
+*#
+\#*#
+.*.swp
+.DS_Store
+.env
+
+# ======================================
+# Project Specific
+# ======================================
+# Add any project-specific ignore patterns below
+
+# Ignore local development configs
+config/local.*
+
+# Ignore local database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignore sensitive files
+secrets.*
+credentials.*
+
+# Ignore large files that shouldn't be in the image
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+*.iso
+*.dmg
+*.pkg
+*.exe
+*.msi
+*.deb
+*.rpm
+
+# Ignore development tools and configs
+.eslintrc*
+.stylelintrc*
+.prettierrc*
+.editorconfig
+.gitpod.yml
+.idea/
+.vscode/
+*.sublime-*
+*.code-workspace
+
+# Ignore test and coverage directories
+coverage/
+.nyc_output/
+.nyc_coverage/
+
+# Ignore local development tools
+.vercel/
+.netlify/
+.surge/
+.elasticbeanstalk/
+.codesandbox/
+
+# Ignore local development files
+.tmp/
+.temp/
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.next/cache/
+.nuxt/cache/
+
+# Ignore environment specific files
+*.local
+*.local.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore debug and profiling files
+*.cpuprofile
+*.heapsnapshot
+*.heaptimeline
+*.heapprofile
+
+# Ignore misc files
+*.bak
+*.swp
+*~
+*#
+\#*#
+.*.swp
+.DS_Store
+
+# Ignore project specific files
+config/local.*
+*.db
+*.sqlite
+*.sqlite3
+secrets.*
+credentials.*
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+*.iso
+*.dmg
+*.pkg
+*.exe
+*.msi
+*.deb
+*.rpm
+
+# Ignore debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore build output
+.next
+.nuxt
+out
+build
+
+# Ignore coverage directory
+coverage
+.nyc_output
+
+# Ignore IDEs and editors
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

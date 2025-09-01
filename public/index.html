@@ -1,220 +1,827 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ollama Model  Manager</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
-        <span id="themeIcon">🌞</span>
-    </button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Ollama Model Manager - Manage your Ollama AI models with ease"
+    />
+    <meta name="theme-color" content="#007aff" />
+    <title>Ollama Model Manager</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="container">
+        <div class="header-content">
+          <div class="header-title">
+            <h1>Ollama Model Manager</h1>
+            <p class="subtitle">Easily manage your Ollama AI models</p>
+          </div>
+          <div class="header-actions">
+            <a
+              href="/swagger.html"
+              class="btn btn-outline btn-sm"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View API documentation"
+            >
+              <span class="btn-icon">📚</span> API Docs
+            </a>
+            <button
+              class="btn btn-outline btn-sm"
+              onclick="toggleTheme()"
+              aria-label="Toggle theme"
+            >
+              <span id="themeIcon" class="btn-icon">🌙</span> Theme
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
 
-    <a href="/swagger.html" class="api-docs-link" title="API Documentation" target="_blank">
-        API Docs
-    </a>
-
-    <div class="container">
-        <h1>Ollama Model  Manager</h1>
-        
-        <div class="endpoint-section">
-            <h2>Ollama Endpoints</h2>
-            <div class="endpoint-container">
-                <div class="endpoint-select-wrapper">
-                    <select id="endpointInput" class="endpoint-select" onchange="setEndpoint()">
-                        <option value="">Loading endpoints...</option>
-                    </select>
-                    <div id="endpointStatus"></div>
-                </div>
-                <div class="running-models-stats">
-                    <h3>Running Models</h3>
-                    <div id="runningModelsContent"></div>
-                </div>
-            </div>
+    <main class="main-content">
+      <div class="container">
+        <!-- Connection Status Bar -->
+        <div
+          class="status-bar"
+          id="connectionStatus"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          <span class="status-indicator"></span>
+          <span class="status-message">Connecting to Ollama endpoint...</span>
         </div>
 
-        <div class="models-section">
-            <div class="model-pull-container" style="margin-bottom: 24px;">
-                <input type="text" id="modelPullInput" placeholder="Enter model name to pull..." class="filter-input" style="width: auto; margin-right: 12px; display: inline-block;">
-                <button onclick="pullModel()" class="pull-btn">Pull Model</button>
-                <div id="pullStatus" style="margin-top: 12px;"></div>
-                <div id="pullProgressText" class="progress-text" style="display: none;"></div>
+        <!-- Endpoint Selection Card -->
+        <section class="card" aria-labelledby="endpoint-heading">
+          <div class="card-header">
+            <h2 id="endpoint-heading">
+              <span class="icon">🔌</span>
+              Ollama Connection
+            </h2>
+            <div class="card-actions">
+              <button
+                class="btn btn-sm btn-outline"
+                onclick="refreshEndpoints()"
+                aria-label="Refresh endpoints"
+              >
+                <span class="btn-icon">🔄</span> Refresh
+              </button>
             </div>
-            <h2>Available Models</h2>
-            <button onclick="refreshModels()">Refresh Models</button>
-            <button onclick="updateSelectedModels()" id="updateSelectedBtn" disabled>Update Selected</button>
-            <button onclick="deleteSelectedModels()" class="delete-btn">Delete Selected</button>
-            <div class="filter-container">
-                <input type="text" id="modelFilter" placeholder="Filter models..." onkeyup="filterModels()" class="filter-input">
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="endpointInput">Ollama Endpoint</label>
+              <div class="input-with-button">
+                <select
+                  id="endpointInput"
+                  class="form-select"
+                  onchange="setEndpoint()"
+                  aria-label="Select Ollama endpoint"
+                  aria-describedby="endpointHelp"
+                >
+                  <option value="">Loading endpoints...</option>
+                </select>
+                <button
+                  class="btn btn-primary"
+                  onclick="testEndpoint()"
+                  id="testEndpointBtn"
+                  disabled
+                >
+                  <span class="btn-icon">🔍</span> Test
+                </button>
+              </div>
+              <small id="endpointHelp" class="form-text">
+                Select or enter your Ollama endpoint (e.g.,
+                http://localhost:11434)
+              </small>
             </div>
-            <div class="models-list" id="modelsList">
-                <div class="models-header">
-                    <div class="checkbox-col">
-                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleAllModels(this)">
+
+            <div
+              id="endpointStatus"
+              class="mt-2"
+              role="status"
+              aria-live="polite"
+            ></div>
+
+            <div class="mt-3">
+              <h3 class="h5">Connection Status</h3>
+              <div class="connection-details">
+                <div class="connection-status">
+                  <span
+                    class="status-indicator offline"
+                    id="connectionIndicator"
+                  ></span>
+                  <span id="connectionStatusText">Disconnected</span>
+                </div>
+                <div class="connection-meta">
+                  <span class="badge" id="apiVersion">API: --</span>
+                  <span class="badge" id="ollamaVersion">Ollama: --</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Running Models Card -->
+        <section class="card mt-4" aria-labelledby="running-models-heading">
+          <div class="card-header">
+            <h2 id="running-models-heading">
+              <span class="icon">🚀</span>
+              Running Models
+            </h2>
+            <div class="card-actions">
+              <button
+                class="btn btn-sm btn-outline"
+                onclick="fetchRunningModels()"
+                aria-label="Refresh running models"
+              >
+                <span class="btn-icon">🔄</span> Refresh
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="runningModelsContent">
+              <div class="empty-state">
+                <div class="empty-state-icon">⏳</div>
+                <p class="empty-state-text">Loading running models...</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Model Management Card -->
+        <section class="card mt-4" aria-labelledby="models-heading">
+          <div class="card-header">
+            <h2 id="models-heading">
+              <span class="icon">🧠</span>
+              Model Management
+            </h2>
+            <div class="card-actions">
+              <div class="dropdown">
+                <button
+                  class="btn btn-outline btn-sm dropdown-toggle"
+                  id="bulkActionsDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  disabled
+                >
+                  <span class="btn-icon">⚙️</span> Bulk Actions
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="bulkActionsDropdown">
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="#"
+                      onclick="updateSelectedModels()"
+                      id="updateSelectedBtn"
+                    >
+                      <span class="dropdown-icon">🔄</span> Update Selected
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      class="dropdown-item text-danger"
+                      href="#"
+                      onclick="deleteSelectedModels()"
+                      id="deleteSelectedBtn"
+                    >
+                      <span class="dropdown-icon">🗑️</span> Delete Selected
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="#"
+                      onclick="exportSelectedModels()"
+                      id="exportSelectedBtn"
+                    >
+                      <span class="dropdown-icon">📤</span> Export Selected
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <button
+                class="btn btn-primary btn-sm"
+                onclick="showPullModelModal()"
+              >
+                <span class="btn-icon">⬇️</span> Pull Model
+              </button>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Search and Filter Bar -->
+            <div class="search-filter-bar">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input
+                  type="text"
+                  id="modelFilter"
+                  placeholder="Search models..."
+                  onkeyup="filterModels()"
+                  class="form-control search-input"
+                  aria-label="Search models"
+                />
+                <button
+                  class="btn btn-clear"
+                  onclick="clearSearch()"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div class="filter-options">
+                <div class="dropdown">
+                  <button
+                    class="btn btn-outline btn-sm dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <span class="btn-icon">🔧</span> Filter
+                  </button>
+                  <div
+                    class="dropdown-menu dropdown-menu-end p-3"
+                    style="min-width: 250px"
+                  >
+                    <div class="mb-2">
+                      <label class="form-label">Model Family</label>
+                      <select
+                        class="form-select form-select-sm"
+                        id="familyFilter"
+                        onchange="filterModels()"
+                      >
+                        <option value="">All Families</option>
+                        <option value="llama">LLaMA</option>
+                        <option value="mistral">Mistral</option>
+                        <option value="gemma">Gemma</option>
+                        <option value="mixtral">Mixtral</option>
+                      </select>
                     </div>
-                    <div class="name-col sort-indicator" onclick="sortModels('name')">Name</div>
-                    <div class="size-col sort-indicator" onclick="sortModels('size')">Size</div>
-                    <div class="param-col sort-indicator" onclick="sortModels('parameter_size')">Params</div>
-                    <div class="family-col sort-indicator" onclick="sortModels('family')">Family</div>
-                    <div class="format-col sort-indicator" onclick="sortModels('format')">Format</div>
-                    <div class="quant-col sort-indicator" onclick="sortModels('quantization_level')">Q-Level</div>
-                    <div class="actions-col">Actions</div>
+                    <div class="mb-2">
+                      <label class="form-label">Parameter Size</label>
+                      <select
+                        class="form-select form-select-sm"
+                        id="sizeFilter"
+                        onchange="filterModels()"
+                      >
+                        <option value="">Any Size</option>
+                        <option value="7b">7B</option>
+                        <option value="13b">13B</option>
+                        <option value="70b">70B</option>
+                      </select>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="showOnlyInstalled"
+                        onchange="filterModels()"
+                      />
+                      <label class="form-check-label" for="showOnlyInstalled"
+                        >Show Installed Only</label
+                      >
+                    </div>
+                  </div>
                 </div>
-                <div id="modelsListContent"></div>
+
+                <div class="dropdown">
+                  <button
+                    class="btn btn-outline btn-sm dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <span class="btn-icon">📊</span> Sort
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        href="#"
+                        onclick="sortModels('name')"
+                      >
+                        <span class="dropdown-icon">A-Z</span> By Name
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        href="#"
+                        onclick="sortModels('size')"
+                      >
+                        <span class="dropdown-icon">📏</span> By Size
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        href="#"
+                        onclick="sortModels('downloads')"
+                      >
+                        <span class="dropdown-icon">⬇️</span> By Popularity
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        href="#"
+                        onclick="sortModels('updated')"
+                      >
+                        <span class="dropdown-icon">🕒</span> Recently Updated
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+
+                <button
+                  class="btn btn-outline btn-sm"
+                  onclick="refreshModels()"
+                  aria-label="Refresh models"
+                >
+                  <span class="btn-icon">🔄</span>
+                  <span class="d-none d-sm-inline">Refresh</span>
+                </button>
+              </div>
             </div>
+
+            <!-- Model Pull Status -->
+            <div
+              id="pullStatus"
+              class="alert alert-info mt-3"
+              role="alert"
+              style="display: none"
+            >
+              <div class="d-flex align-items-center">
+                <div
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                >
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <div id="pullStatusText">Preparing to pull model...</div>
+              </div>
+              <div class="progress mt-2" style="height: 6px">
+                <div
+                  id="pullProgressBar"
+                  class="progress-bar progress-bar-striped progress-bar-animated"
+                  role="progressbar"
+                  style="width: 0%"
+                ></div>
+              </div>
+              <div id="pullProgressText" class="small text-muted mt-1"></div>
+            </div>
+
+            <!-- Models Table -->
+            <div class="table-responsive">
+              <table class="table table-hover align-middle" id="modelsTable">
+                <thead>
+                  <tr>
+                    <th width="40">
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="selectAllCheckbox"
+                          onchange="toggleAllModels(this)"
+                          aria-label="Select all models"
+                        />
+                      </div>
+                    </th>
+                    <th class="sortable" onclick="sortModels('name')">
+                      <span>Model</span>
+                      <span class="sort-indicator">↕️</span>
+                    </th>
+                    <th
+                      class="sortable d-none d-md-table-cell"
+                      onclick="sortModels('size')"
+                    >
+                      <span>Size</span>
+                      <span class="sort-indicator">↕️</span>
+                    </th>
+                    <th
+                      class="sortable d-none d-lg-table-cell"
+                      onclick="sortModels('parameter_size')"
+                    >
+                      <span>Params</span>
+                      <span class="sort-indicator">↕️</span>
+                    </th>
+                    <th
+                      class="sortable d-none d-sm-table-cell"
+                      onclick="sortModels('family')"
+                    >
+                      <span>Family</span>
+                      <span class="sort-indicator">↕️</span>
+                    </th>
+                    <th class="d-none d-xl-table-cell">Format</th>
+                    <th class="d-none d-lg-table-cell">Quant</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="modelsListContent">
+                  <!-- Models will be populated here -->
+                </tbody>
+              </table>
+
+              <!-- Empty State -->
+              <div id="emptyState" class="empty-state" style="display: none">
+                <div class="empty-state-icon">🔍</div>
+                <h3>No models found</h3>
+                <p>Try adjusting your search or filters</p>
+                <button class="btn btn-primary mt-3" onclick="resetFilters()">
+                  <span class="btn-icon">🔄</span> Reset Filters
+                </button>
+              </div>
+
+              <!-- Loading State -->
+              <div id="loadingState" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading models...</span>
+                </div>
+                <p class="mt-2 text-muted">Loading models...</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Pull Model Modal -->
+    <div
+      class="modal fade"
+      id="pullModelModal"
+      tabindex="-1"
+      aria-labelledby="pullModelModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="pullModelModalLabel">
+              <span class="modal-icon">⬇️</span>
+              Pull Model
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="modelNameInput" class="form-label">Model Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="modelNameInput"
+                placeholder="e.g., mistral:latest"
+                aria-describedby="modelNameHelp"
+              />
+              <div id="modelNameHelp" class="form-text">
+                Enter the model name in format
+                <code>repository:tag</code> (e.g., mistral:latest)
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Popular Models</label>
+              <div class="popular-models-grid">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  onclick="selectModel('mistral:latest')"
+                >
+                  Mistral 7B
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  onclick="selectModel('llama2:latest')"
+                >
+                  LLaMA 2
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  onclick="selectModel('gemma:7b')"
+                >
+                  Gemma 7B
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  onclick="selectModel('mixtral:latest')"
+                >
+                  Mixtral
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="confirmPullModel()"
+            >
+              <span class="btn-icon">⬇️</span> Pull Model
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
+    <!-- Confirm Delete Modal -->
+    <div
+      class="modal fade"
+      id="confirmDeleteModal"
+      tabindex="-1"
+      aria-labelledby="confirmDeleteModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-danger" id="confirmDeleteModalLabel">
+              <span class="modal-icon">⚠️</span>
+              Confirm Deletion
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              Are you sure you want to delete the selected
+              <span id="deleteModelCount">0</span> model(s)?
+            </p>
+            <p class="text-muted small">
+              This action cannot be undone. The model files will be permanently
+              removed from your system.
+            </p>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="confirmDeleteCheckbox"
+              />
+              <label class="form-check-label" for="confirmDeleteCheckbox">
+                I understand this action is irreversible
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              id="confirmDeleteBtn"
+              disabled
+            >
+              <span class="btn-icon">🗑️</span> Delete Permanently
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+      <div id="toastContainer" class="toast-container">
+        <!-- Toasts will be added here dynamically -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <span class="text-muted">Ollama Model Manager v1.0.0</span>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <span class="text-muted">
+              <span id="serverStatus" class="badge bg-secondary"
+                >Disconnected</span
+              >
+              <span id="lastUpdated" class="ms-2"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let selectedModels = new Set();
-        let currentModels = [];
-        let currentSort = { field: 'name', direction: 'asc' };
+      let selectedModels = new Set();
+      let currentModels = [];
+      let currentSort = { field: "name", direction: "asc" };
 
-        // Theme handling
-        const toggleTheme = () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            document.getElementById('themeIcon').textContent = newTheme === 'dark' ? '🌞' : '🌙';
-            localStorage.setItem('theme', newTheme);
-        };
+      // Theme handling
+      const toggleTheme = () => {
+        const currentTheme =
+          document.documentElement.getAttribute("data-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        document.getElementById("themeIcon").textContent =
+          newTheme === "dark" ? "🌞" : "🌙";
+        localStorage.setItem("theme", newTheme);
+      };
 
-        // Initialize theme
-        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
-        document.getElementById('themeIcon').textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '🌞' : '🌙';
+      // Initialize theme
+      document.documentElement.setAttribute(
+        "data-theme",
+        localStorage.getItem("theme") || "dark",
+      );
+      document.getElementById("themeIcon").textContent =
+        document.documentElement.getAttribute("data-theme") === "dark"
+          ? "🌞"
+          : "🌙";
 
-        // Load endpoints from server
-        async function loadEndpoints() {
-            try {
-                const response = await fetch('/api/endpoints');
-                const endpoints = await response.json();
-                const select = document.getElementById('endpointInput');
-                
-                // Get last used endpoint from localStorage or use first endpoint
-                const lastEndpoint = localStorage.getItem('lastEndpoint') || endpoints[0];
-                
-                select.innerHTML = endpoints.map(endpoint => 
-                    `<option value="${endpoint}" ${endpoint === lastEndpoint ? 'selected' : ''}>
+      // Load endpoints from server
+      async function loadEndpoints() {
+        try {
+          const response = await fetch("/api/endpoints");
+          const endpoints = await response.json();
+          const select = document.getElementById("endpointInput");
+
+          // Get last used endpoint from localStorage or use first endpoint
+          const lastEndpoint =
+            localStorage.getItem("lastEndpoint") || endpoints[0];
+
+          select.innerHTML = endpoints
+            .map(
+              (endpoint) =>
+                `<option value="${endpoint}" ${endpoint === lastEndpoint ? "selected" : ""}>
                         ${endpoint}
-                    </option>`
-                ).join('');
+                    </option>`,
+            )
+            .join("");
 
-                // Connect to the selected endpoint
-                if (lastEndpoint) {
-                    setEndpoint();
-                }
-            } catch (error) {
-                console.error('Failed to load endpoints:', error);
-                const select = document.getElementById('endpointInput');
-                select.innerHTML = '<option value="">Failed to load endpoints</option>';
-            }
+          // Connect to the selected endpoint
+          if (lastEndpoint) {
+            setEndpoint();
+          }
+        } catch (error) {
+          console.error("Failed to load endpoints:", error);
+          const select = document.getElementById("endpointInput");
+          select.innerHTML =
+            '<option value="">Failed to load endpoints</option>';
+        }
+      }
+
+      function formatSize(bytes) {
+        if (!bytes) return "";
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        let size = bytes;
+        let unitIndex = 0;
+        while (size >= 1024 && unitIndex < units.length - 1) {
+          size /= 1024;
+          unitIndex++;
+        }
+        return `${size.toFixed(2)} ${units[unitIndex]}`;
+      }
+
+      async function setEndpoint() {
+        const endpoint = document.getElementById("endpointInput").value.trim();
+        const statusDiv = document.getElementById("endpointStatus");
+
+        try {
+          const response = await fetch("/api/set-endpoint", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint }),
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            statusDiv.className = "success";
+            statusDiv.textContent = "Connected successfully!";
+            localStorage.setItem("lastEndpoint", endpoint);
+            refreshModels();
+            fetchRunningModels();
+          } else {
+            throw new Error(data.message);
+          }
+        } catch (error) {
+          statusDiv.className = "error";
+          statusDiv.textContent = `Connection failed: ${error.message}`;
+        }
+      }
+
+      function sortModels(field) {
+        const headers = document.querySelectorAll(".models-header > div");
+        headers.forEach((header) => {
+          header.classList.remove("sort-asc", "sort-desc");
+        });
+
+        if (currentSort.field === field) {
+          currentSort.direction =
+            currentSort.direction === "asc" ? "desc" : "asc";
+        } else {
+          currentSort.field = field;
+          currentSort.direction = "asc";
         }
 
-        function formatSize(bytes) {
-            if (!bytes) return '';
-            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-            let size = bytes;
-            let unitIndex = 0;
-            while (size >= 1024 && unitIndex < units.length - 1) {
-                size /= 1024;
-                unitIndex++;
-            }
-            return `${size.toFixed(2)} ${units[unitIndex]}`;
+        const header = document.querySelector(`.${field}-col`);
+        if (header) {
+          header.classList.add(`sort-${currentSort.direction}`);
         }
 
-        async function setEndpoint() {
-            const endpoint = document.getElementById('endpointInput').value.trim();
-            const statusDiv = document.getElementById('endpointStatus');
-            
-            try {
-                const response = await fetch('/api/set-endpoint', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ endpoint })
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    statusDiv.className = 'success';
-                    statusDiv.textContent = 'Connected successfully!';
-                    localStorage.setItem('lastEndpoint', endpoint);
-                    refreshModels();
-                    fetchRunningModels();
-                } else {
-                    throw new Error(data.message);
-                }
-            } catch (error) {
-                statusDiv.className = 'error';
-                statusDiv.textContent = `Connection failed: ${error.message}`;
-            }
+        displayModels(currentModels);
+      }
+
+      function compareValues(a, b, field) {
+        let valueA = a;
+        let valueB = b;
+
+        if (field === "size") {
+          return a - b;
         }
 
-        function sortModels(field) {
-            const headers = document.querySelectorAll('.models-header > div');
-            headers.forEach(header => {
-                header.classList.remove('sort-asc', 'sort-desc');
-            });
-
-            if (currentSort.field === field) {
-                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSort.field = field;
-                currentSort.direction = 'asc';
-            }
-
-            const header = document.querySelector(`.${field}-col`);
-            if (header) {
-                header.classList.add(`sort-${currentSort.direction}`);
-            }
-
-            displayModels(currentModels);
+        if (field === "parameter_size") {
+          valueA = parseFloat(a?.replace("B", "")) || 0;
+          valueB = parseFloat(b?.replace("B", "")) || 0;
+          return valueA - valueB;
         }
 
-        function compareValues(a, b, field) {
-            let valueA = a;
-            let valueB = b;
+        valueA = (valueA || "").toString().toLowerCase();
+        valueB = (valueB || "").toString().toLowerCase();
+        return valueA.localeCompare(valueB);
+      }
 
-            if (field === 'size') {
-                return a - b;
-            }
-            
-            if (field === 'parameter_size') {
-                valueA = parseFloat(a?.replace('B', '')) || 0;
-                valueB = parseFloat(b?.replace('B', '')) || 0;
-                return valueA - valueB;
-            }
+      function filterModels() {
+        const filterValue = document
+          .getElementById("modelFilter")
+          .value.toLowerCase();
+        const filteredModels = currentModels.filter((model) =>
+          model.name.toLowerCase().includes(filterValue),
+        );
+        displayModels(filteredModels);
+      }
 
-            valueA = (valueA || '').toString().toLowerCase();
-            valueB = (valueB || '').toString().toLowerCase();
-            return valueA.localeCompare(valueB);
-        }
+      function displayModels(models) {
+        const modelsListContent = document.getElementById("modelsListContent");
 
-        function filterModels() {
-            const filterValue = document.getElementById('modelFilter').value.toLowerCase();
-            const filteredModels = currentModels.filter(model => 
-                model.name.toLowerCase().includes(filterValue)
-            );
-            displayModels(filteredModels);
-        }
+        // Sort models
+        const sortedModels = [...models].sort((a, b) => {
+          let valueA =
+            currentSort.field === "name"
+              ? a[currentSort.field]
+              : currentSort.field === "size"
+                ? a[currentSort.field]
+                : a.details?.[currentSort.field];
+          let valueB =
+            currentSort.field === "name"
+              ? b[currentSort.field]
+              : currentSort.field === "size"
+                ? b[currentSort.field]
+                : b.details?.[currentSort.field];
 
-        function displayModels(models) {
-            const modelsListContent = document.getElementById('modelsListContent');
-            
-            // Sort models
-            const sortedModels = [...models].sort((a, b) => {
-                let valueA = currentSort.field === 'name' ? a[currentSort.field] : 
-                            currentSort.field === 'size' ? a[currentSort.field] :
-                            a.details?.[currentSort.field];
-                let valueB = currentSort.field === 'name' ? b[currentSort.field] :
-                            currentSort.field === 'size' ? b[currentSort.field] :
-                            b.details?.[currentSort.field];
+          const comparison = compareValues(valueA, valueB, currentSort.field);
+          return currentSort.direction === "asc" ? comparison : -comparison;
+        });
 
-                const comparison = compareValues(valueA, valueB, currentSort.field);
-                return currentSort.direction === 'asc' ? comparison : -comparison;
-            });
-
-            modelsListContent.innerHTML = sortedModels.map(model => `
+        modelsListContent.innerHTML = sortedModels
+          .map(
+            (model) => `
                 <div class="model-item">
                     <div class="checkbox-col">
                         <input type="checkbox" 
@@ -223,10 +830,10 @@
                     </div>
                     <div class="name-col">${model.name}</div>
                     <div class="size-col">${formatSize(model.size)}</div>
-                    <div class="param-col">${model.details?.parameter_size || ''}</div>
-                    <div class="family-col">${model.details?.family || ''}</div>
-                    <div class="format-col">${model.details?.format || ''}</div>
-                    <div class="quant-col">${model.details?.quantization_level || ''}</div>
+                    <div class="param-col">${model.details?.parameter_size || ""}</div>
+                    <div class="family-col">${model.details?.family || ""}</div>
+                    <div class="format-col">${model.details?.format || ""}</div>
+                    <div class="quant-col">${model.details?.quantization_level || ""}</div>
                     <div class="actions-col">
                         <div class="action-buttons">
                             <button class="update-btn" onclick="updateModel('${model.name}')">Update</button>
@@ -235,239 +842,255 @@
                         <div id="status-${model.name}" class="update-status"></div>
                     </div>
                 </div>
-            `).join('');
+            `,
+          )
+          .join("");
+      }
+
+      async function refreshModels() {
+        const modelsList = document.getElementById("modelsList");
+        selectedModels.clear();
+
+        // Reset select all checkbox
+        const selectAllCheckbox = document.getElementById("selectAllCheckbox");
+        if (selectAllCheckbox) {
+          selectAllCheckbox.checked = false;
+          selectAllCheckbox.indeterminate = false;
         }
 
-        async function refreshModels() {
-            const modelsList = document.getElementById('modelsList');
-            selectedModels.clear();
-            
-            // Reset select all checkbox
-            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-            if (selectAllCheckbox) {
-                selectAllCheckbox.checked = false;
-                selectAllCheckbox.indeterminate = false;
-            }
-            
-            try {
-                const response = await fetch('/api/models');
-                const models = await response.json();
-                
-                currentModels = models;
-                displayModels(models);
-            } catch (error) {
-                modelsList.innerHTML = `<div class="error">Failed to fetch models: ${error.message}</div>`;
-            }
-        }
+        try {
+          const response = await fetch("/api/models");
+          const models = await response.json();
 
-        function toggleAllModels(checkbox) {
-            const isChecked = checkbox.checked;
-            currentModels.forEach(model => {
-                const modelCheckbox = document.getElementById(model.name);
-                if (modelCheckbox) {
-                    modelCheckbox.checked = isChecked;
-                    if (isChecked) {
-                        selectedModels.add(model.name);
-                    } else {
-                        selectedModels.delete(model.name);
-                    }
-                }
-            });
-            updateBulkActionButtons();
+          currentModels = models;
+          displayModels(models);
+        } catch (error) {
+          modelsList.innerHTML = `<div class="error">Failed to fetch models: ${error.message}</div>`;
         }
+      }
 
-        function toggleModel(modelName) {
-            const checkbox = document.getElementById(modelName);
-            if (checkbox.checked) {
-                selectedModels.add(modelName);
+      function toggleAllModels(checkbox) {
+        const isChecked = checkbox.checked;
+        currentModels.forEach((model) => {
+          const modelCheckbox = document.getElementById(model.name);
+          if (modelCheckbox) {
+            modelCheckbox.checked = isChecked;
+            if (isChecked) {
+              selectedModels.add(model.name);
             } else {
-                selectedModels.delete(modelName);
+              selectedModels.delete(model.name);
             }
-            
-            // Update select all checkbox state
-            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-            if (selectAllCheckbox) {
-                selectAllCheckbox.checked = currentModels.length > 0 && 
-                    currentModels.every(model => selectedModels.has(model.name));
-                selectAllCheckbox.indeterminate = selectedModels.size > 0 && 
-                    selectedModels.size < currentModels.length;
-            }
-            
-            updateBulkActionButtons();
+          }
+        });
+        updateBulkActionButtons();
+      }
+
+      function toggleModel(modelName) {
+        const checkbox = document.getElementById(modelName);
+        if (checkbox.checked) {
+          selectedModels.add(modelName);
+        } else {
+          selectedModels.delete(modelName);
         }
 
-        function updateBulkActionButtons() {
-            const updateSelectedBtn = document.getElementById('updateSelectedBtn');
-            if (updateSelectedBtn) {
-                updateSelectedBtn.disabled = selectedModels.size === 0;
-            }
+        // Update select all checkbox state
+        const selectAllCheckbox = document.getElementById("selectAllCheckbox");
+        if (selectAllCheckbox) {
+          selectAllCheckbox.checked =
+            currentModels.length > 0 &&
+            currentModels.every((model) => selectedModels.has(model.name));
+          selectAllCheckbox.indeterminate =
+            selectedModels.size > 0 &&
+            selectedModels.size < currentModels.length;
         }
 
-        async function updateSelectedModels() {
-            if (selectedModels.size === 0) return;
-            
-            const models = Array.from(selectedModels);
-            const updatePromises = models.map(modelName => {
-                const statusElement = document.createElement('div');
-                statusElement.id = `status-${modelName}`;
-                statusElement.className = 'update-status';
-                const modelRow = document.getElementById(modelName).closest('.model-item');
-                modelRow.querySelector('.actions-col').appendChild(statusElement);
-                return updateModel(modelName);
-            });
-            
-            await Promise.all(updatePromises);
-            selectedModels.clear();
-            updateBulkActionButtons();
+        updateBulkActionButtons();
+      }
+
+      function updateBulkActionButtons() {
+        const updateSelectedBtn = document.getElementById("updateSelectedBtn");
+        if (updateSelectedBtn) {
+          updateSelectedBtn.disabled = selectedModels.size === 0;
+        }
+      }
+
+      async function updateSelectedModels() {
+        if (selectedModels.size === 0) return;
+
+        const models = Array.from(selectedModels);
+        const updatePromises = models.map((modelName) => {
+          const statusElement = document.createElement("div");
+          statusElement.id = `status-${modelName}`;
+          statusElement.className = "update-status";
+          const modelRow = document
+            .getElementById(modelName)
+            .closest(".model-item");
+          modelRow.querySelector(".actions-col").appendChild(statusElement);
+          return updateModel(modelName);
+        });
+
+        await Promise.all(updatePromises);
+        selectedModels.clear();
+        updateBulkActionButtons();
+        refreshModels();
+      }
+
+      async function deleteModel(modelName) {
+        if (!confirm(`Are you sure you want to delete ${modelName}?`)) {
+          return;
+        }
+
+        try {
+          const response = await fetch("/api/models", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ models: [modelName] }),
+          });
+
+          const data = await response.json();
+          if (data.success) {
             refreshModels();
+          } else {
+            alert(data.message);
+          }
+        } catch (error) {
+          alert("Failed to connect to server");
+        }
+      }
+
+      async function deleteSelectedModels() {
+        if (selectedModels.size === 0) return;
+
+        if (
+          !confirm(
+            `Are you sure you want to delete ${selectedModels.size} model(s)?`,
+          )
+        ) {
+          return;
         }
 
-        async function deleteModel(modelName) {
-            if (!confirm(`Are you sure you want to delete ${modelName}?`)) {
-                return;
-            }
+        try {
+          const response = await fetch("/api/models", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ models: Array.from(selectedModels) }),
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            alert("Models deleted successfully");
+            refreshModels();
+          } else {
+            alert(data.message);
+          }
+        } catch (error) {
+          alert("Failed to connect to server");
+        }
+      }
+
+      function updateStatusElement(statusElement, message, isError = false) {
+        statusElement.textContent = message;
+        if (isError) {
+          setTimeout(() => {
+            statusElement.textContent = "";
+          }, 5000);
+        }
+      }
+
+      function handleUpdateStatus(update, statusElement) {
+        if (update.status === "error") {
+          throw new Error(update.error || "Update failed");
+        }
+
+        switch (update.status) {
+          case "downloading":
+            const progress = ((update.completed / update.total) * 100).toFixed(
+              1,
+            );
+            return `Downloading: ${progress}%`;
+          case "verifying digest":
+            return "Verifying download...";
+          case "writing manifest":
+            return "Finalizing update...";
+          default:
+            return update.status;
+        }
+      }
+
+      async function processUpdateStream(reader, statusElement) {
+        let lastStatus = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const lines = new TextDecoder().decode(value).split("\n");
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
 
             try {
-                const response = await fetch('/api/models', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ models: [modelName] })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    refreshModels();
-                } else {
-                    alert(data.message);
-                }
-            } catch (error) {
-                alert('Failed to connect to server');
+              const update = JSON.parse(line);
+              const newStatus = handleUpdateStatus(update, statusElement);
+
+              if (newStatus !== lastStatus) {
+                updateStatusElement(statusElement, newStatus);
+                lastStatus = newStatus;
+              }
+            } catch (e) {
+              if (e.message === "Update failed") throw e;
+              console.error("Error parsing update:", e);
             }
+          }
         }
+      }
 
-        async function deleteSelectedModels() {
-            if (selectedModels.size === 0) return;
-            
-            if (!confirm(`Are you sure you want to delete ${selectedModels.size} model(s)?`)) {
-                return;
-            }
+      async function updateModel(modelName) {
+        const statusElement = document.getElementById(`status-${modelName}`);
+        updateStatusElement(statusElement, "Starting update...");
 
-            try {
-                const response = await fetch('/api/models', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ models: Array.from(selectedModels) })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    alert('Models deleted successfully');
-                    refreshModels();
-                } else {
-                    alert(data.message);
-                }
-            } catch (error) {
-                alert('Failed to connect to server');
-            }
+        try {
+          const response = await fetch("/api/update-model", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ modelName }),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Failed to start update");
+          }
+
+          await processUpdateStream(response.body.getReader(), statusElement);
+
+          updateStatusElement(statusElement, "Update complete");
+          setTimeout(() => {
+            updateStatusElement(statusElement, "");
+            refreshModels();
+          }, 2000);
+        } catch (error) {
+          console.error("Update error:", error);
+          updateStatusElement(statusElement, `Error: ${error.message}`, true);
         }
+      }
 
-        function updateStatusElement(statusElement, message, isError = false) {
-            statusElement.textContent = message;
-            if (isError) {
-                setTimeout(() => {
-                    statusElement.textContent = '';
-                }, 5000);
-            }
-        }
+      async function fetchRunningModels() {
+        const runningModelsContent = document.getElementById(
+          "runningModelsContent",
+        );
+        try {
+          const response = await fetch("/api/ps");
+          const data = await response.json();
 
-        function handleUpdateStatus(update, statusElement) {
-            if (update.status === 'error') {
-                throw new Error(update.error || 'Update failed');
-            }
+          if (!data.models || data.models.length === 0) {
+            runningModelsContent.innerHTML =
+              '<div class="running-model-item">No models currently running</div>';
+            return;
+          }
 
-            switch (update.status) {
-                case 'downloading':
-                    const progress = ((update.completed / update.total) * 100).toFixed(1);
-                    return `Downloading: ${progress}%`;
-                case 'verifying digest':
-                    return 'Verifying download...';
-                case 'writing manifest':
-                    return 'Finalizing update...';
-                default:
-                    return update.status;
-            }
-        }
-
-        async function processUpdateStream(reader, statusElement) {
-            let lastStatus = '';
-            
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                
-                const lines = new TextDecoder().decode(value).split('\n');
-                
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    
-                    try {
-                        const update = JSON.parse(line);
-                        const newStatus = handleUpdateStatus(update, statusElement);
-                        
-                        if (newStatus !== lastStatus) {
-                            updateStatusElement(statusElement, newStatus);
-                            lastStatus = newStatus;
-                        }
-                    } catch (e) {
-                        if (e.message === 'Update failed') throw e;
-                        console.error('Error parsing update:', e);
-                    }
-                }
-            }
-        }
-
-        async function updateModel(modelName) {
-            const statusElement = document.getElementById(`status-${modelName}`);
-            updateStatusElement(statusElement, 'Starting update...');
-            
-            try {
-                const response = await fetch('/api/update-model', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ modelName })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Failed to start update');
-                }
-
-                await processUpdateStream(response.body.getReader(), statusElement);
-                
-                updateStatusElement(statusElement, 'Update complete');
-                setTimeout(() => {
-                    updateStatusElement(statusElement, '');
-                    refreshModels();
-                }, 2000);
-                
-            } catch (error) {
-                console.error('Update error:', error);
-                updateStatusElement(statusElement, `Error: ${error.message}`, true);
-            }
-        }
-
-        async function fetchRunningModels() {
-            const runningModelsContent = document.getElementById('runningModelsContent');
-            try {
-                const response = await fetch('/api/ps');
-                const data = await response.json();
-                
-                if (!data.models || data.models.length === 0) {
-                    runningModelsContent.innerHTML = '<div class="running-model-item">No models currently running</div>';
-                    return;
-                }
-
-                runningModelsContent.innerHTML = data.models.map(model => `
+          runningModelsContent.innerHTML = data.models
+            .map(
+              (model) => `
                     <div class="running-model-item">
                         <div class="model-stat">
                             <span class="stat-label">Name:</span>
@@ -479,119 +1102,123 @@
                         </div>
                         <div class="model-stat">
                             <span class="stat-label">Parameters:</span>
-                            <span class="stat-value">${model.details?.parameter_size || 'N/A'}</span>
+                            <span class="stat-value">${model.details?.parameter_size || "N/A"}</span>
                         </div>
                         <div class="model-stat">
                             <span class="stat-label">Format:</span>
-                            <span class="stat-value">${model.details?.format || 'N/A'}</span>
+                            <span class="stat-value">${model.details?.format || "N/A"}</span>
                         </div>
                         <div class="model-stat">
                             <span class="stat-label">Quantization:</span>
-                            <span class="stat-value">${model.details?.quantization_level || 'N/A'}</span>
+                            <span class="stat-value">${model.details?.quantization_level || "N/A"}</span>
                         </div>
                     </div>
-                `).join('');
-            } catch (error) {
-                console.error('Failed to fetch running models:', error);
-                runningModelsContent.innerHTML = '<div class="running-model-item error">Failed to fetch running models</div>';
-            }
+                `,
+            )
+            .join("");
+        } catch (error) {
+          console.error("Failed to fetch running models:", error);
+          runningModelsContent.innerHTML =
+            '<div class="running-model-item error">Failed to fetch running models</div>';
+        }
+      }
+
+      async function pullModel() {
+        const modelName = document
+          .getElementById("modelPullInput")
+          .value.trim();
+        if (!modelName) {
+          alert("Please enter a model name");
+          return;
         }
 
-        async function pullModel() {
-            const modelName = document.getElementById('modelPullInput').value.trim();
-            if (!modelName) {
-                alert('Please enter a model name');
-                return;
-            }
+        const statusElement = document.getElementById("pullStatus");
+        const progressText = document.getElementById("pullProgressText");
 
-            const statusElement = document.getElementById('pullStatus');
-            const progressText = document.getElementById('pullProgressText');
-            
-            statusElement.className = '';
-            statusElement.textContent = 'Starting pull...';
-            progressText.style.display = 'none';
+        statusElement.className = "";
+        statusElement.textContent = "Starting pull...";
+        progressText.style.display = "none";
 
-            try {
-                const response = await fetch('/api/pull', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ model: modelName })
-                });
+        try {
+          const response = await fetch("/api/pull", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ model: modelName }),
+          });
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Failed to start pull');
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Failed to start pull");
+          }
+
+          const reader = response.body.getReader();
+          let lastStatus = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const text = new TextDecoder().decode(value);
+            const lines = text.split("\n");
+
+            for (const line of lines) {
+              if (line.trim()) {
+                try {
+                  const update = JSON.parse(line);
+
+                  if (update.status === "error") {
+                    throw new Error(update.error || "Pull failed");
+                  }
+
+                  if (update.status === "downloading") {
+                    progressText.style.display = "block";
+                    progressText.textContent = `Downloading: ${formatSize(update.completed)} / ${formatSize(update.total)}`;
+                    statusElement.textContent = update.status;
+                    statusElement.className = "success";
+                  } else if (update.status !== lastStatus) {
+                    statusElement.textContent = update.status;
+                    statusElement.className = "success";
+                    lastStatus = update.status;
+                  }
+                } catch (e) {
+                  if (e.message === "Pull failed") {
+                    throw e;
+                  }
+                  console.error("Error parsing update:", e);
                 }
-
-                const reader = response.body.getReader();
-                let lastStatus = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    const text = new TextDecoder().decode(value);
-                    const lines = text.split('\n');
-
-                    for (const line of lines) {
-                        if (line.trim()) {
-                            try {
-                                const update = JSON.parse(line);
-
-                                if (update.status === 'error') {
-                                    throw new Error(update.error || 'Pull failed');
-                                }
-
-                                if (update.status === 'downloading') {
-                                    progressText.style.display = 'block';
-                                    progressText.textContent = `Downloading: ${formatSize(update.completed)} / ${formatSize(update.total)}`;
-                                    statusElement.textContent = update.status;
-                                    statusElement.className = 'success';
-                                } else if (update.status !== lastStatus) {
-                                    statusElement.textContent = update.status;
-                                    statusElement.className = 'success';
-                                    lastStatus = update.status;
-                                }
-                            } catch (e) {
-                                if (e.message === 'Pull failed') {
-                                    throw e;
-                                }
-                                console.error('Error parsing update:', e);
-                            }
-                        }
-                    }
-                }
-
-                progressText.style.display = 'none';
-                statusElement.textContent = 'Pull complete';
-                statusElement.className = 'success';
-                setTimeout(() => {
-                    statusElement.textContent = '';
-                    document.getElementById('modelPullInput').value = '';
-                    refreshModels();
-                }, 2000);
-
-            } catch (error) {
-                console.error('Pull error:', error);
-                progressText.style.display = 'none';
-                statusElement.textContent = `Error: ${error.message}`;
-                statusElement.className = 'error';
-                setTimeout(() => {
-                    statusElement.textContent = '';
-                }, 5000);
+              }
             }
+          }
+
+          progressText.style.display = "none";
+          statusElement.textContent = "Pull complete";
+          statusElement.className = "success";
+          setTimeout(() => {
+            statusElement.textContent = "";
+            document.getElementById("modelPullInput").value = "";
+            refreshModels();
+          }, 2000);
+        } catch (error) {
+          console.error("Pull error:", error);
+          progressText.style.display = "none";
+          statusElement.textContent = `Error: ${error.message}`;
+          statusElement.className = "error";
+          setTimeout(() => {
+            statusElement.textContent = "";
+          }, 5000);
         }
+      }
 
-        // Initial load
-        document.addEventListener('DOMContentLoaded', () => {
-            loadEndpoints();
-            fetchRunningModels();
-        });
+      // Initial load
+      document.addEventListener("DOMContentLoaded", () => {
+        loadEndpoints();
+        fetchRunningModels();
+      });
 
-        // Refresh running models periodically
-        setInterval(fetchRunningModels, 5000);
+      // Refresh running models periodically
+      setInterval(fetchRunningModels, 5000);
     </script>
-</body>
+  </body>
 </html>

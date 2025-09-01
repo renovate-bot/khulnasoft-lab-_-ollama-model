@@ -2,8 +2,17 @@ services:
   ollama-model:
     #image: ghcr.io/d3v0ps-cloud/ollama-model:latest
     image: ghcr.io/khulnasoft-lab/ollama-model:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - OLLAMA_ENDPOINTS=http://192.168.1.10:11434,https://ollama1.remote.net,https://ollama2.remote.net
     restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - OLLAMA_ENDPOINTS=${OLLAMA_ENDPOINTS:-http://host.docker.internal:11434}
+      - NODE_ENV=production
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

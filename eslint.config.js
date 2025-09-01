@@ -13,6 +13,8 @@ export default [
         fetch: 'readonly',
         TextDecoder: 'readonly',
         setTimeout: 'readonly',
+        localStorage: 'readonly',
+        confirm: 'readonly',
         // Functions defined in HTML
         updateSelectedModels: 'readonly',
         updateSelectedModelsInBulk: 'readonly',
@@ -33,8 +35,8 @@ export default [
       // Additional custom rules
       'no-unused-vars': 'warn',
       'no-console': 'off', // Allow console for server-side logging
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'single'],
+      semi: ['error', 'always'],
+      quotes: ['error', 'single'],
     },
     // Files to lint
     files: ['**/*.js'],
