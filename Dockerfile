@@ -6,7 +6,7 @@ WORKDIR /app
 # Install build dependencies with no-cache and clean up in one layer
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
-    apt-get update && \
+    for i in $(seq 1 5); do apt-get update && break || sleep 5; done && \
     apt-get install -y --no-install-recommends \
     python3 \
     make \
@@ -45,7 +45,7 @@ WORKDIR /app
 # Install only necessary runtime dependencies
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
-    apt-get update && \
+    for i in $(seq 1 5); do apt-get update && break || sleep 5; done && \
     apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
