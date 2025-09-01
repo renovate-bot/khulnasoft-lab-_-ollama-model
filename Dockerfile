@@ -6,7 +6,11 @@ WORKDIR /app
 # Install build dependencies with no-cache and clean up in one layer
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
-    for i in $(seq 1 5); do apt-get update && break || sleep 5; done && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    echo "--- Checking network connectivity to google.com ---" && ping -c 3 google.com || echo "Ping to google.com failed." && \
+    echo "--- Checking network connectivity to archive.ubuntu.com ---" && ping -c 3 archive.ubuntu.com || echo "Ping to archive.ubuntu.com failed." && \
+    echo "--- Displaying /etc/resolv.conf ---" && cat /etc/resolv.conf && \
+    for i in $(seq 1 5); do apt-get update --allow-releaseinfo-change && break || sleep 5; done && \
     apt-get install -y --no-install-recommends \
     python3 \
     make \
@@ -49,7 +53,11 @@ WORKDIR /app
 # Install only necessary runtime dependencies
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
-    for i in $(seq 1 5); do apt-get update && break || sleep 5; done && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    echo "--- Checking network connectivity to google.com ---" && ping -c 3 google.com || echo "Ping to google.com failed." && \
+    echo "--- Checking network connectivity to archive.ubuntu.com ---" && ping -c 3 archive.ubuntu.com || echo "Ping to archive.ubuntu.com failed." && \
+    echo "--- Displaying /etc/resolv.conf ---" && cat /etc/resolv.conf && \
+    for i in $(seq 1 5); do apt-get update --allow-releaseinfo-change && break || sleep 5; done && \
     apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
