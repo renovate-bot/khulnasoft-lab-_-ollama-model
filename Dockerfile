@@ -17,9 +17,13 @@ RUN --mount=type=cache,target=/var/cache/apt \
 COPY package*.json ./
 COPY .npmrc* ./
 
+# Check if npm is available
+RUN which npm
+
 # Install dependencies with clean cache
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --only=production --prefer-offline --no-audit --progress=false
+
 
 # Copy the rest of the application files
 COPY . .
@@ -52,6 +56,8 @@ RUN --mount=type=cache,target=/var/cache/apt \
 
 # Copy package files and install production deps with clean cache
 COPY --from=builder /app/package*.json ./
+# Check if npm is available
+RUN which npm
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --only=production --prefer-offline --no-audit --progress=false && \
     npm cache clean --force
