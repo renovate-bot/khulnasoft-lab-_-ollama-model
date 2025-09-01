@@ -1,5 +1,5 @@
 # --- Build Stage ---
-FROM node:20-slim AS builder
+FROM node:24-slim AS builder
 
 WORKDIR /app
 
@@ -33,7 +33,7 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY . .
 
 # --- Production Stage ---
-FROM node:20-slim
+FROM node:24-slim
 
 # Set secure defaults
 ENV NODE_ENV=production
